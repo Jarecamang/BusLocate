@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">BusLocate</string>
+    <string name="test_message">Well I did something</string>
+    <string name="error_message">
+        An error has occurred.
+    </string>
+
 </resources>
