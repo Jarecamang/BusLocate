@@ -1,38 +1,79 @@
 package com.jarecamang.buslocate;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.widget.TextView;
 import android.widget.Toast;
-
+import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.io.IOException;
-import java.net.URL;
-
-import java.net.HttpURLConnection;
-
-public class MainActivity extends AppCompatActivity {
-    private String TAG = MainActivity.class.getSimpleName();
-    private TextView mBusList;
-    String test = "";
+public class MainActivity extends AppCompatActivity{
+    private static final String TAG = MainActivity.class.getCanonicalName();
+    private List<Bus> mBusList = new ArrayList<>();
+    private RecyclerView recyclerView;
+    private BusAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        mBusList = (TextView) findViewById(R.id.bus_data);
-        mBusList.append("Well it's kinda working\n\n\n");
-        mBusList.append("Yes it is\n\n\n");
-        mBusList.append("OMG\n\n\n");
-        mBusList.append("hahahah\n\n\n");
-        mBusList.append("hahahah\n\n\n");
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+
+        mAdapter = new BusAdapter(mBusList);
+
+        recyclerView.setHasFixedSize(true);
+
+        // vertical RecyclerView
+        // keep movie_list_row.xml width to `match_parent`
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+
+        // horizontal RecyclerView
+        // keep movie_list_row.xml width to `wrap_content`
+        // RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false);
+
+        recyclerView.setLayoutManager(mLayoutManager);
+
+        // adding inbuilt divider line
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+
+        // adding custom divider line with padding 16dp
+        // recyclerView.addItemDecoration(new MyDividerItemDecoration(this, LinearLayoutManager.HORIZONTAL, 16));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+
+        recyclerView.setAdapter(mAdapter);
+
         new GetBusData().execute();
+
+        recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
+            @Override
+            public void onClick(View view, int position) {
+                Bus bus = mBusList.get(position);
+                //Toast.makeText(getApplicationContext(), bus.getName() + " is selected!", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, RouteActivity.class);
+                intent.putExtra("bus_data", "worked"); //you can name the keys whatever you like
+                startActivity(intent);
+            }
+
+            @Override
+            public void onLongClick(View view, int position) {
+
+            }
+        }));
     }
 
     private class GetBusData extends AsyncTask<Void, Void, Void> {
@@ -63,8 +104,9 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject b = buses.getJSONObject(i);
                         //mBusList.append(b.getString("id"));
                         Log.v(TAG, b.getString("id"));
-                        //debe guardar en algún lado para luego mostrar en el postexecute
-                        test += b.getString("id");
+                        Bus bus = new Bus(b.getInt("id"), b.getString("name"), b.getString("description"));
+                        //saving to show in post execute, i dont know how but we have to save it.
+                        mBusList.add(bus);
 
                     }
                 } catch (final JSONException e) {
@@ -97,7 +139,8 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void result) {
-            mBusList.append(test);
+            //show mBusList
+            mAdapter.notifyDataSetChanged();
         }
     }
 }
