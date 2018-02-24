@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity{
                         JSONObject b = buses.getJSONObject(i);
                         //mBusList.append(b.getString("id"));
                         Log.v(TAG, b.getString("id"));
-                        Bus bus = new Bus(b.getInt("id"), b.getString("name"), b.getString("description"));
+                        Bus bus = new Bus(b.getInt("id"), b.getString("name"), b.getString("description"), b.getString("stops_url"), b.getString("image_url"));
                         //saving to show in post execute, i dont know how but we have to save it.
                         mBusList.add(bus);
 
