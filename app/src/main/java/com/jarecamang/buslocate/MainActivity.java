@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -24,6 +25,7 @@ public class MainActivity extends AppCompatActivity{
     private List<Bus> mBusList = new ArrayList<>();
     private RecyclerView recyclerView;
     private BusAdapter mAdapter;
+    private ProgressBar mLoadingIndicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,10 +44,6 @@ public class MainActivity extends AppCompatActivity{
         // keep movie_list_row.xml width to `match_parent`
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
 
-        // horizontal RecyclerView
-        // keep movie_list_row.xml width to `wrap_content`
-        // RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext(), LinearLayoutManager.HORIZONTAL, false);
-
         recyclerView.setLayoutManager(mLayoutManager);
 
         // adding inbuilt divider line
@@ -57,6 +55,8 @@ public class MainActivity extends AppCompatActivity{
 
         recyclerView.setAdapter(mAdapter);
 
+        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
+
         new GetBusData().execute();
 
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
@@ -65,7 +65,11 @@ public class MainActivity extends AppCompatActivity{
                 Bus bus = mBusList.get(position);
                 //Toast.makeText(getApplicationContext(), bus.getName() + " is selected!", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(MainActivity.this, RouteActivity.class);
-                intent.putExtra("bus_data", "worked"); //you can name the keys whatever you like
+                intent.putExtra("route_id",bus.getId());
+                intent.putExtra("route_name",bus.getName());
+                intent.putExtra("route_description",bus.getDescription());
+                intent.putExtra("route_stops",bus.getStops_url());
+                intent.putExtra("route_img",bus.getImg_url());
                 startActivity(intent);
             }
 
@@ -80,7 +84,8 @@ public class MainActivity extends AppCompatActivity{
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            Toast.makeText(MainActivity.this,"Json Data is downloading", Toast.LENGTH_LONG).show();
+            mLoadingIndicator.setVisibility(View.VISIBLE);
+            //Toast.makeText(MainActivity.this,"Json Data is downloading", Toast.LENGTH_LONG).show();
 
         }
 
@@ -104,7 +109,7 @@ public class MainActivity extends AppCompatActivity{
                         JSONObject b = buses.getJSONObject(i);
                         //mBusList.append(b.getString("id"));
                         Log.v(TAG, b.getString("id"));
-                        Bus bus = new Bus(b.getInt("id"), b.getString("name"), b.getString("description"), b.getString("stops_url"), b.getString("image_url"));
+                        Bus bus = new Bus(b.getInt("id"), b.getString("name"), b.getString("description"), b.getString("stops_url"), b.getString("img_url"));
                         //saving to show in post execute, i dont know how but we have to save it.
                         mBusList.add(bus);
 
@@ -140,6 +145,7 @@ public class MainActivity extends AppCompatActivity{
         @Override
         protected void onPostExecute(Void result) {
             //show mBusList
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
             mAdapter.notifyDataSetChanged();
         }
     }
