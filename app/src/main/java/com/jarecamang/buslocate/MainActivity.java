@@ -112,19 +112,9 @@ public class MainActivity extends AppCompatActivity{
                         Bus bus = new Bus(b.getInt("id"), b.getString("name"), b.getString("description"), b.getString("stops_url"), b.getString("img_url"));
                         //saving to show in post execute, i dont know how but we have to save it.
                         mBusList.add(bus);
-
                     }
                 } catch (final JSONException e) {
                     Log.e(TAG, "Json parsing error: " + e.getMessage());
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getApplicationContext(),
-                                    "Json parsing error: " + e.getMessage(),
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    });
-
                 }
 
             } else {
@@ -133,7 +123,7 @@ public class MainActivity extends AppCompatActivity{
                     @Override
                     public void run() {
                         Toast.makeText(getApplicationContext(),
-                                "Couldn't get json from server. Check LogCat for possible errors!",
+                                "No hay conexión a internet, compruebe su conexión y reinicie!",
                                 Toast.LENGTH_LONG).show();
                     }
                 });

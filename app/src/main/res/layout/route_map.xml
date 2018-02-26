@@ -44,11 +44,9 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/routeData"
-            android:textColor="#343434"
             android:textSize="10dip"
             android:layout_marginTop="1dip"
-            android:layout_toRightOf="@+id/thumbnail"
-            android:text="Just gona stand there and ..." />
+            android:layout_toRightOf="@+id/thumbnail" />
 
         <!-- Rightend Duration -->
         <TextView

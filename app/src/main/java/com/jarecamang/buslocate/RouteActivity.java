@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -49,15 +50,17 @@ public class RouteActivity extends AppCompatActivity implements OnMapReadyCallba
     private Bus bus;
     private Bitmap routeImage;
     private ImageView imageView;
-    private FrameLayout progressBarHolder;
-    private AlphaAnimation inAnimation;
-    private AlphaAnimation outAnimation;
+//    private FrameLayout progressBarHolder;
+//    private AlphaAnimation inAnimation;
+//    private AlphaAnimation outAnimation;
+    private CoordinatorLayout layout;
     private Integer duration;
     private Integer retry;
     private TextView durationTextView;
     private boolean mapFinished;
     private boolean downloadFinished;
     private GoogleMap printedMap;
+    private ProgressBar mLoadingIndicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +69,13 @@ public class RouteActivity extends AppCompatActivity implements OnMapReadyCallba
         setContentView(R.layout.route_details);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setNavigationIcon(R.drawable.back_arrow);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(),MainActivity.class));
+            }
+        });
         setSupportActionBar(toolbar);
 
         mapFinished = false;
@@ -82,6 +92,8 @@ public class RouteActivity extends AppCompatActivity implements OnMapReadyCallba
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
 
+        layout = findViewById(R.id.layout);
+
         bus = new Bus(extras.getInt("route_id"),
                 extras.getString("route_name"),
                 extras.getString("route_description"),
@@ -91,10 +103,15 @@ public class RouteActivity extends AppCompatActivity implements OnMapReadyCallba
         // Capture the layout's TextView and set the string as its text
         durationTextView = findViewById(R.id.duration);
 
+        mLoadingIndicator = (ProgressBar) findViewById(R.id.pb_loading_indicator);
+
         new GetRouteData().execute();
 
         TextView textView = findViewById(R.id.routeData);
-        textView.setText(bus.getName());
+        textView.setText("\n" + bus.getName());
+
+        TextView descText = findViewById(R.id.route_description);
+        descText.setText("\n\n"+bus.getDescription());
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
@@ -131,7 +148,9 @@ public class RouteActivity extends AppCompatActivity implements OnMapReadyCallba
             LatLngBounds bounds = builder.build();
             int height = getResources().getDisplayMetrics().heightPixels;
             printedMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, (int) (height * 0.10)));
-
+            //here i will stop the loading tasks.
+            mLoadingIndicator.setVisibility(View.INVISIBLE);
+            layout.setAlpha((float)1);
             // Adding all the points in the route to LineOptions
 //            PolylineOptions lineOptions = new PolylineOptions();
 //            lineOptions.addAll(routeStops);
@@ -145,10 +164,14 @@ public class RouteActivity extends AppCompatActivity implements OnMapReadyCallba
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            //Here I start the loading
             //inAnimation = new AlphaAnimation(0f, 1f);
             //inAnimation.setDuration(200);
             //progressBarHolder.setAnimation(inAnimation);
             //progressBarHolder.setVisibility(View.VISIBLE);
+            mLoadingIndicator.setVisibility(View.VISIBLE);
+            layout.setBackgroundColor(Color.BLACK);
+            layout.setAlpha((float)0.4);
             Log.e("RouteData", "Route Data is downloading");
         }
 
@@ -197,15 +220,6 @@ public class RouteActivity extends AppCompatActivity implements OnMapReadyCallba
                     }
                 } catch (final JSONException e) {
                     Log.e(TAG, "Json parsing error: " + e.getMessage());
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(getApplicationContext(),
-                                    "Json parsing error: " + e.getMessage(),
-                                    Toast.LENGTH_LONG).show();
-                        }
-                    });
-
                 }
 
             } else {
@@ -214,7 +228,7 @@ public class RouteActivity extends AppCompatActivity implements OnMapReadyCallba
                     @Override
                     public void run() {
                         Toast.makeText(getApplicationContext(),
-                                "Couldn't get json from server. Check LogCat for possible errors!",
+                                "No hay conexión a internet, compruebe y reinicie!",
                                 Toast.LENGTH_LONG).show();
                     }
                 });
